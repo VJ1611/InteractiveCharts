@@ -1,0 +1,186 @@
+<html>
+<head>
+<style>
+body{
+font-family:Comic Sans MS;
+font-size:18px;
+padding:2,2,2,2;
+}
+</style>
+    <title> Air Pollution in Summer and Winter months </title>
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">        
+        google.load('visualization', '1.0', { 'packages': ['controls'] });
+        google.setOnLoadCallback(queryData);
+
+        // Send query to the Google Spreadsheet that contains the Air Pollution data.  
+        function queryData() {
+            // Don't forget to add "/gviz/tq?tq=" to the end of the spreadsheet URL. 
+            var query = new google.visualization.Query(
+                'https://docs.google.com/spreadsheets/d/1uKFUMK2wGeyT_a92jy-eTej-bTbXEmAzaMM2ibAKCRQ/gviz/tq?tq=');
+            query.send(handleQueryResponse);
+        }
+
+        // Callback function that receives data from the Google Spreadsheet
+        function handleQueryResponse(response) {
+            if (response.isError()) {
+                alert('Error in query: ' + response.getMessage() + ' '
+                 + response.getDetailedMessage());
+                return;
+            }
+
+            // If there is no error, retrieve data from the Google Spreadsheet response. 
+            var dataTable = response.getDataTable();
+
+            // Create table chart
+            var tableChart = new google.visualization.ChartWrapper({
+                'chartType': 'Table',
+                'containerId': 'tableChart',
+                // 'view': { 'columns': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+            });
+
+            // Don't draw the chart now. The chart will be drawn when the dashboard is drawn. 
+
+            // Create line chart
+            var lineChart = new google.visualization.ChartWrapper({
+                'chartType': 'LineChart',
+                'containerId': 'line_chart_div',
+                'title': 'Realestate',
+                'view': { 'columns': [1, 9, 8, 7] },
+                'options': {
+                    hAxis: { title: 'Temperature, Precipitation and Wind in different Cities' }
+                }
+            });
+
+            // Create column chart
+            var columnChart = new google.visualization.ChartWrapper({
+                'chartType': 'ColumnChart',
+                'containerId': 'bar_chart_div',
+                'title': 'Realestate',
+                'view': { 'columns': [1, 2, 3, 4]},
+                'options': {
+                    hAxis: { title: 'O3, NO2, SO3 Variations in different Cities' }
+                }
+            });
+			
+			// Create area chart
+            var areaChart = new google.visualization.ChartWrapper({
+          'chartType': 'AreaChart',
+          'containerId': 'area_chart_div',
+		  'view': { 'columns': [1, 2, 3,7] },
+		   'options': {
+                    title:'Variations in Temperature, O3 and NO2 of different cities'
+					 }
+         
+		  });
+            // Create controls
+            var TempFilter = new google.visualization.ControlWrapper({
+                'width': 1600,
+                'height': 1200,
+                'controlType': 'NumberRangeFilter',
+                'containerId': 'temp_filter_div',
+                'options': {
+                    'filterColumnIndex': '7',
+                    ui: { 'labelStacking': 'vertical', 'label': 'Temperature Variations' }
+                }
+            });
+
+            var WindFilter = new google.visualization.ControlWrapper({
+                'width': 1600,
+                'height': 1200,
+                'controlType': 'NumberRangeFilter',
+                'containerId': 'wind_filter_div',
+                'options': {
+                    'filterColumnIndex': '8',
+                    ui: { 'labelStacking': 'vertical', 'label': 'Wind Variations' }
+                }
+            });
+			
+			var CityFilter = new google.visualization.ControlWrapper({
+                'width': 1600,
+                'height': 1200,
+                'controlType': 'CategoryFilter',
+                'containerId': 'city_filter_div',
+                'options': {
+                    'filterColumnIndex': '1',
+                    ui: { 'labelStacking': 'vertical', 'label': 'City Selection' }
+                }
+            });
+
+            // Create a dashboard
+            var dashboard = new google.visualization.Dashboard(document.getElementById('dashboard_div'));
+
+            // Bind controls with charts. These controls and charts are now part of the dashboard. 
+            dashboard.bind([TempFilter,WindFilter,CityFilter],
+                        [tableChart,lineChart,columnChart,areaChart]);
+
+            // Draw the dashboard. 
+            dashboard.draw(dataTable);
+        }
+    </script>
+</head>
+
+<body bgcolor="#FFFAF0">
+   <center> <h2><font color="#191970"> Project-I </font></h2></center>
+   <center> <h2><font color="#191970"> Air Pollution in Summer and Winter Months Data Visualization </font></h2></center>
+    <div id="dashboard_div">
+    <hr>
+        <table align="center" border="5" width="98%" cellpadding="2">
+        <tr>
+                 <td>
+                 <h3><center><font color="#800000"> CONTROLS </font><font color="#191970">(I, II & III)</font></center></h3>
+                 </td>
+                 <td>
+                 <h3><center><font color="#800000"> TABLE CHART </font><font color="#191970">(CHART-I)</font></center></h3>
+                 </td>
+                 </tr>
+        <tr>
+                
+                <td>
+                    <div id="temp_filter_div" style="">
+                    </div>
+                    <br /><br />
+                    <div id="wind_filter_div" style="">
+                    </div>
+                    <br /><br />
+                    <div id="city_filter_div" style="">
+                    </div>
+                </td>
+                <td>
+                    <div id="tableChart" style="height: 200px; width: 550px; border-style: groove;">
+                    </div>
+                  
+                 </td>     
+            </tr>
+            
+        </table>
+        
+        <br/>
+        <table>
+        <tr>           
+                    <h3><center><font color="#800000"> LINE CHART </font><font color="#191970">(CHART-II)</font></center></h3>
+        </tr>
+        <tr>
+        <div id="line_chart_div" style="height: 200px; width: 1200px; border-style: groove;">
+                    </div>
+         </tr>
+         
+            <br />
+            <tr>       
+                    <h3><center><font color="#800000"> COLUMN CHART </font><font color="#191970">(CHART-III)</font></center></h3>
+              </tr>
+            <tr>
+            <div id="bar_chart_div" style="height: 200px; width: 1200px; border-style: groove;">
+                    </div>
+             </tr>
+             <tr>       
+                    <h3><center><font color="#800000"> AREA CHART </font><font color="#191970">(CHART-IV)</font></center></h3>
+              </tr>
+              <tr>
+            <div id="area_chart_div" style="height: 200px; width: 1200px; border-style: groove;">
+                    </div>
+             </tr>
+             
+              </table>      
+</body>
+</html>

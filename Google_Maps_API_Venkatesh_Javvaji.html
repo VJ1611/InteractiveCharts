@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Maps API</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 1;
+        padding: 1;
+      }
+      #map {
+        height: 100%;
+        margin-left: 350px;
+      }
+
+      #TextDisplay {
+            height: 100%;
+            float: left;
+            width: 350px;
+            overflow: scroll;
+        }
+      #AddressField {
+        border: 2px solid #a5a5a5;
+        width: 220px;
+      }
+       #DirectionPanel {
+        border: 2px solid #a5a5a5;
+        
+      }
+      #AddressText {
+        border: 2px solid #a5a5a5;
+        width: 250px;
+      }
+#floating-panel {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 5;
+  background-color: #fff;
+  padding: 5px;
+  border: 1px solid #999;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size:16px;
+  line-height: 30px;
+  padding-left: 10px;
+}
+    </style>
+  </head>
+  <body>
+      <div id="TextDisplay">
+          <div>
+              <input id="AddressField" placeholder="Enter an Address of the starting place" type="text" />
+              <input type="button" value="Get Directions" onclick="searchDirection();">
+          </div>
+          <div id="DirectionPanel">            
+          </div>
+      </div>
+    <div id="floating-panel">
+        <input id="AddressText" placeholder="Enter an Address to Search" type="text" />
+        <b>Radius </b>
+            <select id="RadiusSelector">
+             
+              <option value="1">1 miles</option>
+              <option value="2">2 miles</option>
+              <option value="5">5 miles</option>
+              <option value="10">10 miles</option>
+              <option value="25">25 miles</option>
+              <option value="50">50 miles</option>
+              <option value="100">100 miles</option>
+          </select>
+        <input type="button" onclick="location.href = './Marker_Cluster_Venkatesh_Javvaji.html';" value="Implementation of Marker Cluster" />
+    </div>
+    <div id="map"></div>
+
+    <script>
+        var markerSelect;
+        var viewDirections;
+        var directionsService;
+        var map;
+        function initMap() {
+            var markerPosition = new google.maps.Marker;
+            var latNum = 42.32391, lngNum = -72.6566;
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                center: { lat: latNum, lng: lngNum }
+            });
+
+            var layer = new google.maps.FusionTablesLayer({
+                query: {
+                    select: 'address',
+                    from: '1-zkmZXdMhgzNl8MFnzYQCr04qaF1X90IBbV6zkae'
+                },
+                styles: [{
+                    markerOptions: { iconName: 'homegardenbusiness' }
+                }],
+                suppressInfoWindows: false
+            });
+
+            layer.addListener('click', function (event) {
+                markerSelect = event.latLng;
+            });
+            layer.setMap(map);
+
+
+
+            google.maps.event.addDomListener(document.getElementById('RadiusSelector'), 'change', function () {
+                if (document.getElementById('AddressText').value == '') {
+                    window.alert('Please Enter an Search Address! ');
+                    return;
+                }
+                var addressString = document.getElementById("AddressText").value;
+                var geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ 'address': addressString }, function (results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        map.setCenter(results[0].geometry.location);
+                        markerPosition.setMap(map);
+                        markerPosition.setPosition(results[0].geometry.location);
+
+                        layer.setOptions({
+                            query: {
+                                select: 'address',
+                                from: '1-zkmZXdMhgzNl8MFnzYQCr04qaF1X90IBbV6zkae',
+                                where: 'ST_INTERSECTS(address, CIRCLE(LATLNG(' + results[0].geometry.location.lat() 
+                                    + ', ' + results[0].geometry.location.lng() 
+                                    + '), ' + parseFloat(document.getElementById('RadiusSelector').value) * 1609.34 + '))'
+                            }
+                        });
+
+                    } else {
+                        alert("Geocoding failed: " + status);
+                    }
+                });
+            });
+
+            var InputDirection = new google.maps.places.Autocomplete(document.getElementById('AddressField'));
+            InputDirection.addListener('place_changed', function () {
+                var place = InputDirection.getPlace();
+                if (place.geometry) {
+                    map.panTo(place.geometry.location);
+                    map.setZoom(14);
+                    markerPosition.setMap(map);
+                    markerPosition.setPosition(place.geometry.location);
+                } else {
+                    document.getElementById('AddressField').placeholder = 'Enter an Direction Address';
+                }
+            });
+ 
+            viewDirections = new google.maps.DirectionsRenderer({
+                map: map,
+                panel: document.getElementById('DirectionPanel'),
+                draggable: true
+            });
+            directionsService = new google.maps.DirectionsService;
+
+        }
+
+
+        function searchDirection() {
+            
+            if (document.getElementById('AddressField').value == '') {
+                window.alert('Please Enter an Address!!! ');
+                return;
+            }
+            if (markerSelect == null) {
+                window.alert('Please select a marker on the map as destination!!! ');
+                return;
+            }
+
+            directionsService.route({
+                origin: document.getElementById('AddressField').value,
+                destination: markerSelect,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: true,
+                avoidHighways: false,
+                avoidTolls: false,
+                provideRouteAlternatives: true
+            }, function (response, status) {
+            if (status === google.maps.DirectionsStatus.OK) {
+                viewDirections.setDirections(response);
+            } else {
+                window.alert('Directions request failed: ' + status);
+            }
+    });
+}
+
+    </script>
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA5VQEJZtjm1itfo6J2zb2L6vvvl6hMgEQ&libraries=places&signed_in=true&callback=initMap"
+              async defer></script>
+      
+  </body>
+</html>

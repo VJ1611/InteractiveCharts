@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Visualization Project 4</title>
+
+    <style type="text/css">
+        circle {
+            stroke-width: 1.5px;
+        }
+
+        line {
+            stroke: #999;
+        }
+		
+	#myDiv {
+		width: 80%;
+		height: 200px;
+		background: white;
+		margin: auto;
+		padding: 10px;
+	}
+
+	#subDiv1 {
+		width: 50%;
+		height: 200px;
+		background: white;
+		float: left;
+	}
+	
+	#subDiv2 {
+		margin-left: 15%;
+		height: 200px;
+		background: white;
+	}
+	
+	body{
+			font-family:Comic Sans MS;
+			font-size:18px;
+		}
+		
+		
+    </style>
+    
+  
+    
+  
+</head>
+<body>
+<h1 align="center">Data Visualization</h1>
+
+<h2 align="center">Network Visualization using D3js</h2>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+  <script type="text/javascript">
+
+    
+        var filename = null;
+        
+        function updatefunc(){
+        	
+        	filename = document.getElementById('filename').value;
+        	
+        	//alert(filename);
+        	activate();
+        	
+        }
+        
+        function activate(){
+        	d3.select("svg").remove();
+        	 var w = 960,
+             h = 600,
+             r = 6,
+             fill = d3.scale.category20();
+
+         var force = d3.layout.force()
+             .charge(-120)  // The repulsive force between nodes
+             .linkDistance(30)	// The maximum distance between nodes
+             .size([w, h]);
+         
+         var tip = d3.tip()
+         .attr('class', 'd3-tip')
+         .offset([-10, 0])
+         .html(function(d) {
+           return "<strong>Name:</strong> <span style='color:black'>" + d.name + "</span>";
+         })
+
+         var svg = d3.select("body").append("svg:svg")
+             .attr("width", w)
+             .attr("height", h);
+         svg.call(tip);
+
+         d3.json(filename, function (json) {
+             var link = svg.selectAll("line")
+                 .data(json.links)
+               .enter().append("svg:line");
+
+             var node = svg.selectAll("circle")
+                 .data(json.nodes)
+               .enter().append("svg:circle")
+                 .attr("r", r - .75)
+                 .style("fill", function (d) { return fill(d.group); })
+                 .style("stroke", function (d) { return d3.rgb(fill(d.group)).darker(); })
+                 .on('mouseover', tip.show)
+      			.on('mouseout', tip.hide)
+                 .call(force.drag);
+            
+            
+            var cell = node.append("path")
+                .attr("class", "cell");
+            
+            force
+                .nodes(json.nodes)
+                .links(json.links)
+                .on("tick", tick)
+                .start();
+        
+			
+            d3.select("#gravitySlider").on("change", function(){
+    			var val = this.value;
+    			d3.select("#gravityValue").text(val);
+    			force.gravity(val);
+    			force.resume();
+    		});
+            
+        	d3.select("#chargeSlider").on("change", function(){
+    			var val = this.value;
+    			d3.select("#chargeValue").text(val);
+    			force.charge(val);
+    			force.start();
+    		});
+        	d3.select("#distance").on("change", function(){
+    			var val = this.value;
+    			d3.select("#DistValue").text(val);
+    			force.linkDistance(val);
+    			force.start();
+    		});
+        	d3.select("#friction").on("change", function(){
+    			var val = this.value;
+    			d3.select("#frictionValue").text(val);
+    			force.friction(val);
+    			force.start();
+    		});
+        	d3.select("#linkStrength").on("change", function(){
+    			var val = this.value;
+    			d3.select("#linkValue").text(val);
+    			force.linkStrength(val);
+    			force.start();
+    		});
+        	d3.select("#chargeDistance").on("change", function(){
+    			var val = this.value;
+    			d3.select("#chargeDistValue").text(val);
+    			force.chargeDistance(val);
+    			force.start();
+    		});
+            
+            function tick(e) {
+                // Push sources up and targets down to form a weak tree.
+                var k = 6 * e.alpha; // Create the easing animation effect
+                json.links.forEach(function (d, i) {
+                    d.source.y -= k;
+                    d.target.y += k;
+                });
+
+                node.attr("cx", function (d) { return d.x })
+                    .attr("cy", function (d) { return d.y; });
+
+                link.attr("x1", function (d) { return d.source.x; })
+                    .attr("y1", function (d) { return d.source.y; })
+                    .attr("x2", function (d) { return d.target.x; })
+                    .attr("y2", function (d) { return d.target.y; });
+         
+            }
+        });
+        
+    
+        }
+
+    </script>
+	<div id="one" align="center">
+  File Upload: <input type = text id = filename placeholder='Enter the file name' >
+    <input type = button value = 'Load File' onclick = 'return updatefunc();'>
+	</div>
+    <br/><br/>
+	
+	<div id="myDiv" name="myDiv" title="Example Div Element" style="font-family: Comic Sans MS; font-size: 12pt; border: 1px hidden black;">
+  <div id="subDiv1" name="subDiv1" title="Subdivision Div Element" style="color: #000000; border: 1px hidden ;">
+    <h3>GUI Coomponents -I</h4>
+    <label>Gravity:&nbsp;<input id="gravitySlider" type="range" min=1 max=5 step=1>&nbsp;<span id="gravityValue"></span></label><br/>
+		<label>Charge Scaling:&nbsp;<input id="chargeSlider" type="range" min=-200 max=100 step=10>&nbsp;<span id="chargeValue"></span></label><br/>
+		<label>Link Strength:&nbsp;<input id="linkStrength" type="range" min=0 max=1 step=0.1>&nbsp;<span id="linkValue"></span></label><br/>
+
+  </div>
+  
+  <div id="subDiv2" name="subDiv2" title="Subdivision Div Element" style="color: #000000;border: 1px hidden;">
+    <h3>GUI Coomponents -II</h3>
+    <label>Friction:&nbsp;<input id="friction" type="range" min=0 max=1 step=0.1>&nbsp;<span id="frictionValue"></span></label><br/>
+		<label>Charge Distance:&nbsp;<input id="chargeDistance" type="range" min=0 max=1 step=0.1>&nbsp;<span id="chargeDistValue"></span></label><br/>
+		<label>Distance:&nbsp;<input id="distance" type="range" min=0 max=100 step=10>&nbsp;<span id="DistValue"></span></label>
+  </div>
+</div>
+	
+</body>
+</html>
